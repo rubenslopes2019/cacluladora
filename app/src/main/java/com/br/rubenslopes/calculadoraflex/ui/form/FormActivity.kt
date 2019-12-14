@@ -3,9 +3,13 @@ package com.br.rubenslopes.calculadoraflex.ui.form
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import com.br.rubenslopes.calculadoraflex.R
 import com.br.rubenslopes.calculadoraflex.model.CarData
+import com.br.rubenslopes.calculadoraflex.ui.login.LoginActivity
 import com.br.rubenslopes.calculadoraflex.ui.result.ResultActivity
+import com.br.rubenslopes.calculadoraflex.utils.DatabaseUtil
 import com.br.rubenslopes.calculadoraflex.watchers.DecimalTextWatcher
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -18,6 +22,8 @@ class FormActivity : AppCompatActivity() {
     private lateinit var userId: String
     private lateinit var mAuth: FirebaseAuth
     private val firebaseReferenceNode = "CarData"
+    private val defaultClearValueText = "0.0"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_form)
@@ -51,20 +57,52 @@ class FormActivity : AppCompatActivity() {
             .setValue(carData)
     }
     private fun listenerFirebaseRealtime() {
-        val database = FirebaseDatabase.getInstance()
-        database
+        DatabaseUtil.getDatabase()
             .getReference(firebaseReferenceNode)
             .child(userId)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val carData = dataSnapshot.getValue(CarData::class.java)
+                    val carData =
+                        dataSnapshot.getValue(CarData::class.java)
                     etGasPrice.setText(carData?.gasPrice.toString())
+
                     etEthanolPrice.setText(carData?.ethanolPrice.toString())
                     etGasAverage.setText(carData?.gasAverage.toString())
+
                     etEthanolAverage.setText(carData?.ethanolAverage.toString())
                 }
-                override fun onCancelled(error: DatabaseError) {
-                }
+                override fun onCancelled(error: DatabaseError) {}
             })
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.form_menu, menu)
+        return true
+    }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.getItemId()) {
+            R.id.action_clear -> {
+                clearData()
+                return true
+            }
+            R.id.action_logout -> {
+                logout()
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun logout() {
+        mAuth.signOut()
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+    }
+    private fun clearData() {
+        etGasPrice.setText(defaultClearValueText)
+        etEthanolPrice.setText(defaultClearValueText)
+        etGasAverage.setText(defaultClearValueText)
+        etEthanolAverage.setText(defaultClearValueText)
     }
 }
