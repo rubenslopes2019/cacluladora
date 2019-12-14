@@ -21,10 +21,10 @@ class SplashActivity : AppCompatActivity() {
             Context.MODE_PRIVATE)
         val isFirstOpen = preferences.getBoolean("open_first", true)
         if (isFirstOpen) {
-            showLogin()
+            showSplash()
         } else {
             markAppAlreadyOpen(preferences)
-            showSplash()
+            showLogin()
         }
     }
     private fun markAppAlreadyOpen(preferences: SharedPreferences) {
